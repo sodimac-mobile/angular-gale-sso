@@ -1,0 +1,23 @@
+/*------------------------------------------------------
+ Company:           Gale Framework Ltda.
+ Author:            David Gaete <dmunozgaete@gmail.com> (https://github.com/dmunozgaete)
+ 
+ Description:       Angular Gale Single Sign On
+ Github:            https://github.com/dmunozgaete/angular-gale-sso
+
+ Versión:           1.0.0-rc.1
+ Build Date:        2016-10-03 17:38:22
+------------------------------------------------------*/
+
+gale-sso {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  left: 0px;
+  bottom: 0px; }
+  gale-sso > iframe {
+    border: none;
+    width: 100%;
+    height: 100%; }
+
+/*# sourceMappingURL=angular-gale-sso.css.map */

@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,QAAS;EACL,QAAQ,EAAE,QAAQ;EAClB,GAAG,EAAE,GAAG;EACR,KAAK,EAAE,GAAG;EACV,IAAI,EAAE,GAAG;EACT,MAAM,EAAE,GAAG;EACX,iBAAS;IACL,MAAM,EAAE,IAAI;IACZ,KAAK,EAAE,IAAI;IACX,MAAM,EAAE,IAAI",
+"sources": ["angular-gale-sso.scss"],
+"names": [],
+"file": "angular-gale-sso.css"
+}

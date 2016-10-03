@@ -1,0 +1,37 @@
+{
+  "name": "angular-gale-sso",
+  "version": "1.0.0-rc.1",
+  "homepage": "https://github.com/dmunozgaete/angular-gale-sso",
+  "authors": [
+    "David Gaete <dmunozgaete@gmail.com> (https://github.com/dmunozgaete)"
+  ],
+  "description": "Angular Gale Single Sign On",
+  "main": [
+    "dist/angular-gale-sso.js",
+    "dist/angular-gale-sso.css"
+  ],
+  "moduleType": [
+    "es6"
+  ],
+  "keywords": [
+    "Gale",
+    "AngularJS",
+    "SingleSignOn",
+    "Angular",
+    "DmunozGaete"
+  ],
+  "license": "Apache 2.0 License",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "grunt",
+    "src",
+    "Gruntfile.js",
+    "package.json"
+  ],
+  "dependencies": {
+    "angular-gale": "~1.0.0-rc.8"
+  }
+}
