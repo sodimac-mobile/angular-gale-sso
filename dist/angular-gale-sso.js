@@ -6,7 +6,7 @@
  Github:            https://github.com/dmunozgaete/angular-gale-sso
 
  Versión:           1.0.0-rc.1
- Build Date:        2016-10-03 17:38:22
+ Build Date:        2016-10-03 17:45:55
 ------------------------------------------------------*/
 
 angular.module('gale-sso.templates', []).run(['$templateCache', function($templateCache) {
@@ -14,6 +14,13 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
   $templateCache.put("gale-sso/gale-sso.tpl.html",
     "<flex-loading ng-if=model.isLoading></flex-loading><iframe frameborder=0 border=0 cellspacing=0 ng-show=!model.isLoading></iframe>");
 }]);
+;angular.manifiest('gale-sso', [
+    'gale-sso.templates',
+    'gale-sso.components',
+    'gale-sso.services'
+], [
+    'gale' //ANGULAR GALE CORE LIBRARY
+]);
 ;angular.module('gale-sso.components')
 
 .directive('galeSso', ['$log', '$q', '$cordovaSingleSignOn', function($log, $q, $cordovaSingleSignOn) {
@@ -334,10 +341,3 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
         return self;
     }];
 });
-;angular.manifiest('gale-sso', [
-    'gale-sso.templates',
-    'gale-sso.components',
-    'gale-sso.services'
-], [
-    'gale' //ANGULAR GALE CORE LIBRARY
-]);
