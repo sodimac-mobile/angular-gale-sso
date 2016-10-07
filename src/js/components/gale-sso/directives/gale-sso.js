@@ -47,7 +47,7 @@ angular.module('gale-sso.components')
                             }, function(e) {
                                 var handler = $scope.onLoginError();
                                 if(handler){
-                                    handler(data);
+                                    handler(e);
                                 }
                             });
                             finaly = true;
