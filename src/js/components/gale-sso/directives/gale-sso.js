@@ -6,7 +6,7 @@ angular.module('gale-sso.components')
         scope: {
             onLoginSuccess: '&',
             onLoginError: '&',
-            scopes: '@'
+            scopes: '='
         },
         templateUrl: 'gale-sso/gale-sso.tpl.html',
         controller: function(

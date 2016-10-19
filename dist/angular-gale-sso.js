@@ -6,7 +6,7 @@
  Github:            https://github.com/dmunozgaete/angular-gale-sso
 
  Versión:           1.0.0-rc.1
- Build Date:        2016-10-18 23:18:01
+ Build Date:        2016-10-18 23:51:50
 ------------------------------------------------------*/
 
 angular.module('gale-sso.templates', []).run(['$templateCache', function($templateCache) {
@@ -29,7 +29,7 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
         scope: {
             onLoginSuccess: '&',
             onLoginError: '&',
-            scopes: '@'
+            scopes: '='
         },
         templateUrl: 'gale-sso/gale-sso.tpl.html',
         controller: ['$scope', '$element', '$q', '$timeout', function(
