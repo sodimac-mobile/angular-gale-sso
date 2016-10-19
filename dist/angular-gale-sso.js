@@ -6,7 +6,7 @@
  Github:            https://github.com/dmunozgaete/angular-gale-sso
 
  Versión:           1.0.0-rc.1
- Build Date:        2016-10-07 0:51:24
+ Build Date:        2016-10-18 23:18:01
 ------------------------------------------------------*/
 
 angular.module('gale-sso.templates', []).run(['$templateCache', function($templateCache) {
@@ -28,7 +28,8 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
         restrict: 'E',
         scope: {
             onLoginSuccess: '&',
-            onLoginError: '&'
+            onLoginError: '&',
+            scopes: '@'
         },
         templateUrl: 'gale-sso/gale-sso.tpl.html',
         controller: ['$scope', '$element', '$q', '$timeout', function(
@@ -41,18 +42,20 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
                 isLoading: true
             };
 
-            var oauth2 = $cordovaSingleSignOn.$$buildAuthorization([
-                "profile",
-                "delivery"
-            ]);
+            var _scopes = ($scope.scopes || ["profile"]);
+            var oauth2 = $cordovaSingleSignOn.$$buildAuthorization(_scopes);
 
             var iframe = $element.find("iframe");
             iframe.attr("src", oauth2.oauth2Url);
 
+            var isLoaded = false;
             iframe.bind("load", function() {
-
+                if (isLoaded) {
+                    return false; //EVERY FRAME , LOAD, IS CALLED...
+                }
                 var delay = $timeout(function() {
                     $timeout.cancel(delay);
+                    isLoaded = true;
 
                     vm.isLoading = false;
                     var finaly = false;
@@ -64,12 +67,12 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
                             windowElm.unbind("message", fn);
                             oauth2.parser(e.data).then(function(data) {
                                 var handler = $scope.onLoginSuccess();
-                                if(handler){
+                                if (handler) {
                                     handler(data);
                                 }
                             }, function(e) {
                                 var handler = $scope.onLoginError();
-                                if(handler){
+                                if (handler) {
                                     handler(e);
                                 }
                             });

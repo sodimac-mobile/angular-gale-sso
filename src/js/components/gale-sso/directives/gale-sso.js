@@ -5,7 +5,8 @@ angular.module('gale-sso.components')
         restrict: 'E',
         scope: {
             onLoginSuccess: '&',
-            onLoginError: '&'
+            onLoginError: '&',
+            scopes: '@'
         },
         templateUrl: 'gale-sso/gale-sso.tpl.html',
         controller: function(
@@ -18,18 +19,20 @@ angular.module('gale-sso.components')
                 isLoading: true
             };
 
-            var oauth2 = $cordovaSingleSignOn.$$buildAuthorization([
-                "profile",
-                "delivery"
-            ]);
+            var _scopes = ($scope.scopes || ["profile"]);
+            var oauth2 = $cordovaSingleSignOn.$$buildAuthorization(_scopes);
 
             var iframe = $element.find("iframe");
             iframe.attr("src", oauth2.oauth2Url);
 
+            var isLoaded = false;
             iframe.bind("load", function() {
-
+                if (isLoaded) {
+                    return false; //EVERY FRAME , LOAD, IS CALLED...
+                }
                 var delay = $timeout(function() {
                     $timeout.cancel(delay);
+                    isLoaded = true;
 
                     vm.isLoading = false;
                     var finaly = false;
@@ -41,12 +44,12 @@ angular.module('gale-sso.components')
                             windowElm.unbind("message", fn);
                             oauth2.parser(e.data).then(function(data) {
                                 var handler = $scope.onLoginSuccess();
-                                if(handler){
+                                if (handler) {
                                     handler(data);
                                 }
                             }, function(e) {
                                 var handler = $scope.onLoginError();
-                                if(handler){
+                                if (handler) {
                                     handler(e);
                                 }
                             });
