@@ -63,9 +63,6 @@ angular.module('gale-sso.components')
 
             });
 
-
-
-
             //Garbage Collector Destroy
             $scope.$on('$destroy', function() {
 

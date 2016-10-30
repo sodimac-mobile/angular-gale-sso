@@ -6,7 +6,7 @@
  Github:            https://github.com/dmunozgaete/angular-gale-sso
 
  Versión:           1.0.0-rc.1
- Build Date:        2016-10-18 23:51:50
+ Build Date:        2016-10-20 11:53:59
 ------------------------------------------------------*/
 
 angular.module('gale-sso.templates', []).run(['$templateCache', function($templateCache) {
@@ -120,9 +120,17 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
         return $this;
     };
 
-    this.$get = ['$q', '$Api', function($q, $Api) {
+    this.$get = ['$q', '$Api', '$Identity', function($q, $Api, $Identity) {
         var self = this;
         var _authResponse = null;
+
+        //TRY TO RECONSTRUCT THE IDENTITY DATA
+        if ($Identity.isAuthenticated()) {
+            _authResponse = {
+                connected: "connected",
+                access_token: $Identity.getAccessToken()
+            };
+        }
 
         self.getAppId = function() {
             if (!_appId) {
@@ -325,6 +333,13 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
         self.api = function(query) {
             var defer = $q.defer();
             var accessToken = self.getAccessToken();
+
+            switch (query) {
+                case "addresses":
+                    query = "me/addresses";
+                    break;
+            }
+
             $Api.read("{sso_url}Accounts/{query}", {
                     sso_url: self.getApiUrl(),
                     query: query
