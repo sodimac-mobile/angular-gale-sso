@@ -22,9 +22,17 @@ angular.module('gale-sso.services')
         return $this;
     };
 
-    this.$get = function($q, $Api) {
+    this.$get = function($q, $Api, $Identity) {
         var self = this;
         var _authResponse = null;
+
+        //TRY TO RECONSTRUCT THE IDENTITY DATA
+        if ($Identity.isAuthenticated()) {
+            _authResponse = {
+                connected: "connected",
+                access_token: $Identity.getAccessToken()
+            };
+        }
 
         self.getAppId = function() {
             if (!_appId) {
@@ -227,6 +235,13 @@ angular.module('gale-sso.services')
         self.api = function(query) {
             var defer = $q.defer();
             var accessToken = self.getAccessToken();
+
+            switch (query) {
+                case "addresses":
+                    query = "me/addresses";
+                    break;
+            }
+
             $Api.read("{sso_url}Accounts/{query}", {
                     sso_url: self.getApiUrl(),
                     query: query
