@@ -6,7 +6,7 @@
  Github:            https://github.com/dmunozgaete/angular-gale-sso
 
  Versión:           1.0.0-rc.1
- Build Date:        2016-10-20 11:53:59
+ Build Date:        2016-11-07 15:42:09
 ------------------------------------------------------*/
 
 gale-sso {
@@ -15,6 +15,44 @@ gale-sso {
   right: 0px;
   left: 0px;
   bottom: 0px; }
+  gale-sso sso-loading {
+    /*FLEX*/
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    -webkit-align-items: center;
+    -moz-align-items: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    -webkit-justify-content: center;
+    -moz-justify-content: center;
+    justify-content: center;
+    -webkit-box-direction: normal;
+    -webkit-box-orient: vertical;
+    -webkit-flex-direction: column;
+    -moz-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    /*END FLEX*/
+    min-width: 100%;
+    min-height: 100%;
+    background-position: center center; }
+    gale-sso sso-loading sso-image > img {
+      height: 60px;
+      width: auto; }
+    gale-sso sso-loading sso-title {
+      display: block;
+      margin-top: 8px;
+      opacity: 0.7; }
+    gale-sso sso-loading sso-legend {
+      display: block;
+      opacity: 0.45;
+      font-size: 0.85em; }
   gale-sso > iframe {
     border: none;
     width: 100%;
