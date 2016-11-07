@@ -54,3 +54,14 @@ gale-sso {
         height: 100%;
     }
 }
+
+body.platform-webview {
+    /*--------------------------------------------------
+      IOS VIEWPORT (FIX - HEADER FULL SCREEN)
+    --------------------------------------------------*/
+    &.platform-ios {
+        gale-sso {
+            border-top: 20px solid #fa3e3e;
+        }
+    }
+}

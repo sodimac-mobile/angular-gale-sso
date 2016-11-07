@@ -6,7 +6,7 @@
  Github:            https://github.com/dmunozgaete/angular-gale-sso
 
  Versión:           1.0.0-rc.1
- Build Date:        2016-11-07 15:42:09
+ Build Date:        2016-11-07 17:06:53
 ------------------------------------------------------*/
 
 gale-sso {
@@ -57,5 +57,12 @@ gale-sso {
     border: none;
     width: 100%;
     height: 100%; }
+
+body.platform-webview {
+  /*--------------------------------------------------
+    IOS VIEWPORT (FIX - HEADER FULL SCREEN)
+  --------------------------------------------------*/ }
+  body.platform-webview.platform-ios gale-sso {
+    border-top: 20px solid #fa3e3e; }
 
 /*# sourceMappingURL=angular-gale-sso.css.map */

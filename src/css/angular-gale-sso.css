@@ -47,4 +47,11 @@ gale-sso {
     width: 100%;
     height: 100%; }
 
+body.platform-webview {
+  /*--------------------------------------------------
+    IOS VIEWPORT (FIX - HEADER FULL SCREEN)
+  --------------------------------------------------*/ }
+  body.platform-webview.platform-ios gale-sso {
+    border-top: 20px solid #fa3e3e; }
+
 /*# sourceMappingURL=angular-gale-sso.css.map */
