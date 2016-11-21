@@ -6,7 +6,7 @@
  Github:            https://github.com/dmunozgaete/angular-gale-sso
 
  Versión:           1.0.0-rc.1
- Build Date:        2016-11-07 17:06:53
+ Build Date:        2016-11-20 23:44:04
 ------------------------------------------------------*/
 
 angular.module('gale-sso.templates', []).run(['$templateCache', function($templateCache) {
@@ -101,6 +101,7 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
     //Configurable Variable on .config Step
     var _appId = null;
     var _ssoBaseURL = null;
+    var _ssoLabel = "$sso:perApp:state";
 
     this.setAppId = function(value) {
         _appId = value;
@@ -117,7 +118,7 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
         return $this;
     };
 
-    this.$get = ['$q', '$Api', '$Identity', function($q, $Api, $Identity) {
+    this.$get = ['$q', '$Api', '$Identity', '$LocalStorage', function($q, $Api, $Identity, $LocalStorage) {
         var self = this;
         var _authResponse = null;
 
@@ -214,8 +215,24 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
             var scopes = permissions.join(","); //Scopes requested
             var response_type = "token"; //Better for javascript is token
             var redirect_uri = "oauth2/v2/connect/oauth2_callback.html?origin="; //Dummy redirect uri
-            var state = null; //some usefully text?
+            var state = (_settings.state || null); //some usefully text?
             var prompt = (_settings.prompt || "consent"); //Always show consent dialog
+
+            //---------------------------------------------
+            //IN IOS browser (or webview inside a Cordova)
+            //the cookie is not shared... A BIG BIG PROBLEM!!!
+            // TRICK SOLUTION:
+            //  Send the bearer token setted in the first login :P,
+            //  the result is the app show the login only the first time
+            //  per application , and not cross-app which is the initial
+            //  intention.....
+            var curr_bearerToken = ($LocalStorage.getObject(_ssoLabel) || null);
+            if (curr_bearerToken) {
+                //GET THE BEARER TOKEN IN LOCALSTORAGE FOR 
+                //IOS BUG... IN COOKIE
+                curr_bearerToken = curr_bearerToken.authResponse.access_token;
+            }
+            //---------------------------------------------
 
             //---------------------------------------------
             var api_url = self.getApiUrl();
@@ -234,7 +251,8 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
                 "&redirect_uri=", callback_url,
                 "&scope=", scopes,
                 "&prompt=", prompt,
-                "&state=", state
+                "&state=", state,
+                "&_wbvf=", curr_bearerToken // WEB VIEW IOS FIX
             ].join("");
             //---------------------------------------------
 
@@ -259,6 +277,19 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
             }
 
             var oauth2 = self.$$buildAuthorization(permissions, settings);
+
+            //IN IOS browser (or webview inside a Cordova)
+            //the cookie is not shared... A BIG BIG PROBLEM!!!
+            // TRICK SOLUTION:
+            //  Send the bearer token setted in the first login :P,
+            //  the result is the app show the login only the first time
+            //  per application , and not cross-app which is the initial
+            //  intention.....
+            defer.promise.then(function(data) {
+                //SET THE BEARER TOKEN IN LOCALSTORAGE FOR 
+                //IOS BUG... IN COOKIE
+                $LocalStorage.setObject(_ssoLabel, data);
+            });
 
             //URI to match
             switch (mode) {
