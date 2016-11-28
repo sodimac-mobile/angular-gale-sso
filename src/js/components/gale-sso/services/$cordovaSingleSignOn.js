@@ -96,10 +96,23 @@ angular.module('gale-sso.services')
                         "token_type"
                     ]);
                     _authResponse = j1; //Set the authResponse, for after call's
-                    parsed.resolve({
+                    var result = {
                         authResponse: j1,
                         status: "connected"
-                    });
+                    };
+
+                    //IN IOS browser (or webview inside a Cordova)
+                    //the cookie is not shared... A BIG BIG PROBLEM!!!
+                    // TRICK SOLUTION:
+                    //  Send the bearer token setted in the first login :P,
+                    //  the result is the app show the login only the first time
+                    //  per application , and not cross-app which is the initial
+                    //  intention.....
+                    //SET THE BEARER TOKEN IN LOCALSTORAGE FOR 
+                    //IOS BUG... IN COOKIE
+                    $LocalStorage.setObject(_ssoLabel, result);
+
+                    parsed.resolve(result);
                 } else {
                     var j2 = build([
                         "error"
@@ -183,18 +196,6 @@ angular.module('gale-sso.services')
 
             var oauth2 = self.$$buildAuthorization(permissions, settings);
 
-            //IN IOS browser (or webview inside a Cordova)
-            //the cookie is not shared... A BIG BIG PROBLEM!!!
-            // TRICK SOLUTION:
-            //  Send the bearer token setted in the first login :P,
-            //  the result is the app show the login only the first time
-            //  per application , and not cross-app which is the initial
-            //  intention.....
-            defer.promise.then(function(data) {
-                //SET THE BEARER TOKEN IN LOCALSTORAGE FOR 
-                //IOS BUG... IN COOKIE
-                $LocalStorage.setObject(_ssoLabel, data);
-            });
 
             //URI to match
             switch (mode) {
