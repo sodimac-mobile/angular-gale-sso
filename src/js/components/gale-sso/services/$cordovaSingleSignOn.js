@@ -1,12 +1,12 @@
 angular.module('gale-sso.services')
 
+
 .provider('$cordovaSingleSignOn', function() {
     var $this = this;
 
     //Configurable Variable on .config Step
     var _appId = null;
     var _ssoBaseURL = null;
-    var _ssoLabel = "$sso:perApp:state";
 
     this.setAppId = function(value) {
         _appId = value;
@@ -23,9 +23,19 @@ angular.module('gale-sso.services')
         return $this;
     };
 
-    this.$get = function($q, $Api, $Identity, $LocalStorage) {
+    this.$get = ['$q', '$Api', '$Identity', '$LocalStorage', function($q, $Api, $Identity, $LocalStorage) {
         var self = this;
         var _authResponse = null;
+        var _platform = (typeof ionic === "object" ? "ionic" : "browser");
+
+        //Check if Develop in a browser :P
+        if (_platform === "ionic") {
+            //If Not in WebView (Device) , set mode browser
+            if (!ionic.Platform.isWebView()) {
+                _platform = "browser";
+            }
+        }
+
 
         //TRY TO RECONSTRUCT THE IDENTITY DATA
         if ($Identity.isAuthenticated()) {
@@ -59,7 +69,7 @@ angular.module('gale-sso.services')
 
         var parseFragment = function(uri) {
             var parsed = $q.defer();
-            var qs = uri.substring(uri.indexOf("#") + 1).split("&");
+            var qs = uri.substring(uri.indexOf("#access_token") + 1).split("&");
 
             var build = function(tokens) {
                 var j = {};
@@ -91,6 +101,7 @@ angular.module('gale-sso.services')
 
                 //Is Authenticate
                 if (isSuccess) {
+
                     var j1 = build(["access_token",
                         "expires_in",
                         "token_type"
@@ -100,17 +111,6 @@ angular.module('gale-sso.services')
                         authResponse: j1,
                         status: "connected"
                     };
-
-                    //IN IOS browser (or webview inside a Cordova)
-                    //the cookie is not shared... A BIG BIG PROBLEM!!!
-                    // TRICK SOLUTION:
-                    //  Send the bearer token setted in the first login :P,
-                    //  the result is the app show the login only the first time
-                    //  per application , and not cross-app which is the initial
-                    //  intention.....
-                    //SET THE BEARER TOKEN IN LOCALSTORAGE FOR 
-                    //IOS BUG... IN COOKIE
-                    $LocalStorage.setObject(_ssoLabel, result);
 
                     parsed.resolve(result);
                 } else {
@@ -128,29 +128,39 @@ angular.module('gale-sso.services')
             return parsed.promise;
         };
 
+        //Check all cordova dependencies
+        var checkDependencies = function() {
+            //check for inAppBrowser
+            (function(dependencies) {
+                for (var i in dependencies) {
+                    var dependency = dependencies[i];
+
+                    if (!eval(dependency.assert)) {
+                        throw new Error(
+                            "The cordova plugin '{0}' is required for Cordova Single Sign On".format([
+                                dependency.package
+                            ])
+                        );
+                    }
+                }
+            })([
+                { assert: "cordova", package: "cordova" },
+                { assert: "cordova.InAppBrowser", package: "cordova-plugin-inappbrowser" },
+                { assert: "window.plugins", package: "cordova" },
+                { assert: "window.plugins.launchmyapp", package: "cordova-plugin-customurlscheme" },
+                { assert: "SafariViewController", package: "cordova-plugin-safariviewcontroller" },
+                { assert: "BuildInfo", package: "cordova-plugin-buildinfo" },
+                { assert: "cordova", package: "cordova" }
+            ]);
+        };
+
         self.$$buildAuthorization = function(permissions, settings) {
             var _settings = (settings || {});
-            var scopes = permissions.join(","); //Scopes requested
+            var scopes = (permissions || ["profile"]).join(","); //Scopes requested
             var response_type = "token"; //Better for javascript is token
             var redirect_uri = "oauth2/v2/connect/oauth2_callback.html?origin="; //Dummy redirect uri
             var state = (_settings.state || null); //some usefully text?
             var prompt = (_settings.prompt || "consent"); //Always show consent dialog
-
-            //---------------------------------------------
-            //IN IOS browser (or webview inside a Cordova)
-            //the cookie is not shared... A BIG BIG PROBLEM!!!
-            // TRICK SOLUTION:
-            //  Send the bearer token setted in the first login :P,
-            //  the result is the app show the login only the first time
-            //  per application , and not cross-app which is the initial
-            //  intention.....
-            var curr_bearerToken = ($LocalStorage.getObject(_ssoLabel) || null);
-            if (curr_bearerToken) {
-                //GET THE BEARER TOKEN IN LOCALSTORAGE FOR 
-                //IOS BUG... IN COOKIE
-                curr_bearerToken = curr_bearerToken.authResponse.access_token;
-            }
-            //---------------------------------------------
 
             //---------------------------------------------
             var api_url = self.getApiUrl();
@@ -162,16 +172,30 @@ angular.module('gale-sso.services')
                 return url;
             })();
             var callback_url = api_url + redirect_uri + location.origin;
-            var oauth2_url = [
-                self.getApiUrl(), "oauth2/v2/auth",
-                "?response_type=", response_type,
-                "&client_id=", self.getAppId(),
-                "&redirect_uri=", callback_url,
-                "&scope=", scopes,
-                "&prompt=", prompt,
-                "&state=", state,
-                "&_wbvf=", curr_bearerToken // WEB VIEW IOS FIX
-            ].join("");
+            var oauth2_url = (function(platform) {
+                var fragments = [
+                    self.getApiUrl(), "oauth2/v2/authorize",
+                    "?response_type=", response_type,
+                    "&client_id=", self.getAppId(),
+                    "&scope=", scopes,
+                    "&prompt=", prompt
+                ];
+
+                //Depend's on the platform , set bundle_id or redirect_uri
+                switch (platform) {
+                    case "ionic":
+                        fragments.push("&bundle_id=" + BuildInfo.packageName);
+                        break;
+                    default:
+                        fragments.push("&redirect_uri=" + callback_url);
+                        break;
+                }
+                if (state) {
+                    fragments.push("&state=" + state);
+                }
+
+                return fragments;
+            })(_platform).join("");
             //---------------------------------------------
 
             return {
@@ -184,40 +208,56 @@ angular.module('gale-sso.services')
 
         self.login = function(permissions, settings) {
             var defer = $q.defer();
-            var mode = typeof ionic === "object" ? "ionic" : "browser";
-
-            //Check if Develop in a browser :P
-            if (mode === "ionic") {
-                //If Not in WebView (Device) , set mode browser
-                if (!ionic.Platform.isWebView()) {
-                    mode = "browser";
-                }
-            }
-
             var oauth2 = self.$$buildAuthorization(permissions, settings);
 
-
             //URI to match
-            switch (mode) {
+            switch (_platform) {
                 case "ionic":
-                    //Open a Browser Plugin
-                    var inApp_features = [
-                        "toolbar=no",
-                        "location=no",
-                        "clearsessioncache=no",
-                        "clearcache=no"
-                    ].join(",");
+                    //WEEE NEED SUPPORT TO NTLM Authentication for Microsoft Active Directory
+                    checkDependencies();
 
-                    var browser = cordova.InAppBrowser.open(oauth2.oauth2Url, '_blank', inApp_features);
-                    browser.addEventListener('loadstop', function(e) {
-                        if (e.url.indexOf(oauth2.callbackUrl) === 0) {
-                            parseFragment(e.url).then(function(data) {
-                                browser.close();
-                                defer.resolve(data);
+                    SafariViewController.isAvailable(function(available) {
+                        if (available) {
+                            SafariViewController.show({
+                                url: oauth2.oauth2Url,
+                                hidden: false, // default false. You can use this to load cookies etc in the background (see issue #1 for details).
+                                animated: false // default true, note that 'hide' will reuse this preference (the 'Done' button will always animate though)
+                            });
 
-                            }, function(e) {
-                                browser.close();
-                                defer.reject(e);
+                            //Wee need to connect the "handlerURl", because
+                            //with Safari Web view, wee can't get the URL opened 
+                            //for security reason, so we need to use the 
+                            //URL scheme strategy
+                            //https://github.com/EddyVerbruggen/cordova-plugin-safariviewcontroller
+                            window.handleOpenURL = function(url) {
+                                SafariViewController.hide();
+                                parseFragment(url).then(function(data) {
+                                    defer.resolve(data);
+                                }, function(e) {
+                                    defer.reject(e);
+                                });
+                            };
+
+                        } else {
+                            //Open a Browser Plugin
+                            var inApp_features = [
+                                "toolbar=no",
+                                "location=no",
+                                "clearsessioncache=no",
+                                "clearcache=no"
+                            ].join(",");
+                            var browser = cordova.InAppBrowser.open(oauth2.oauth2Url, '_blank', inApp_features);
+                            browser.addEventListener('loadstop', function(e) {
+                                if (e.url.indexOf(oauth2.callbackUrl) === 0) {
+                                    parseFragment(e.url).then(function(data) {
+                                        browser.close();
+                                        defer.resolve(data);
+
+                                    }, function(e) {
+                                        browser.close();
+                                        defer.reject(e);
+                                    });
+                                }
                             });
                         }
                     });
@@ -291,5 +331,5 @@ angular.module('gale-sso.services')
         };
 
         return self;
-    };
+    }];
 });

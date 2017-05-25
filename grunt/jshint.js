@@ -7,7 +7,8 @@ module.exports = function(grunt, options) {
             eqnull: true,
             browser: true,
             validthis: true,
-            devel: true
+            devel: true,
+            evil:true
         },
 
         components: {
