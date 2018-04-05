@@ -6,6 +6,7 @@ angular.module('gale-sso.services')
     //Configurable Variable on .config Step
     var _appId = null;
     var _ssoBaseURL = null;
+    var _ssoBaseAuthURL = null;
     var _ssoLabel = "$sso:perApp:state";
 
     this.setAppId = function(value) {
@@ -23,7 +24,15 @@ angular.module('gale-sso.services')
         return $this;
     };
 
-    this.$get = function($q, $Api, $Identity, $LocalStorage) {
+    this.setApiAuthUrl = function(value) {
+    
+        _ssoBaseAuthURL = value;
+        return $this;
+    };
+
+
+
+    this.$get = ['$q', '$Api', '$Identity', '$LocalStorage', function($q, $Api, $Identity, $LocalStorage) {
         var self = this;
         var _authResponse = null;
 
@@ -48,6 +57,13 @@ angular.module('gale-sso.services')
             }
             return _ssoBaseURL;
         };
+
+        self.getApiAuthUrl = function(){
+            if (!_ssoBaseURL) {
+                throw Error("SSO_BASEURL_NOT_SET");
+            }
+            return _ssoBaseAuthURL;
+        }
 
         self.getAccessToken = function() {
             if (!_authResponse) {
@@ -162,8 +178,11 @@ angular.module('gale-sso.services')
                 return url;
             })();
             var callback_url = api_url + redirect_uri + location.origin;
+            if (settings && settings.redirect_uri) {
+                callback_url = settings.redirect_uri;
+            }
             var oauth2_url = [
-                self.getApiUrl(), "oauth2/v2/auth",
+                self.getApiAuthUrl(),
                 "?response_type=", response_type,
                 "&client_id=", self.getAppId(),
                 "&redirect_uri=", callback_url,
@@ -291,5 +310,5 @@ angular.module('gale-sso.services')
         };
 
         return self;
-    };
+    }];
 });
