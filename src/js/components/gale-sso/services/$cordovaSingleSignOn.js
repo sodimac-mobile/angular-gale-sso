@@ -63,7 +63,7 @@ angular.module('gale-sso.services')
                 throw Error("SSO_BASEURL_NOT_SET");
             }
             return _ssoBaseAuthURL;
-        }
+        };
 
         self.getAccessToken = function() {
             if (!_authResponse) {

@@ -6,10 +6,10 @@
  Github:            https://github.com/dmunozgaete/angular-gale-sso
 
  Versión:           1.0.0-rc.1
- Build Date:        2016-11-28 0:19:41
+ Build Date:        2018-04-05 10:23:33
 ------------------------------------------------------*/
 
-angular.module('gale-sso.templates', []).run(['$templateCache', function($templateCache) {
+angular.module('gale-sso.templates', []).run(['$templateCache', function ($templateCache) {
   "use strict";
   $templateCache.put("gale-sso/gale-sso.tpl.html",
     "<sso-loading ng-if=model.isLoading><sso-image><img src=\"data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHdpZHRoPSc3MnB4JyBoZWlnaHQ9JzcycHgnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIiBjbGFzcz0idWlsLXJpbmctYWx0Ij48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0ibm9uZSIgY2xhc3M9ImJrIj48L3JlY3Q+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDAiIHN0cm9rZT0ibm9uZSIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj48L2NpcmNsZT48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgc3Ryb2tlPSIjMDA3MGQxIiBmaWxsPSJub25lIiBzdHJva2Utd2lkdGg9IjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0ic3Ryb2tlLWRhc2hvZmZzZXQiIGR1cj0iM3MiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIiBmcm9tPSIwIiB0bz0iNTAyIj48L2FuaW1hdGU+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0ic3Ryb2tlLWRhc2hhcnJheSIgZHVyPSIzcyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiIHZhbHVlcz0iMTUwLjYgMTAwLjQ7MSAyNTA7MTUwLjYgMTAwLjQiPjwvYW5pbWF0ZT48L2NpcmNsZT48L3N2Zz4=\"></sso-image><sso-title>Iniciando Plataforma</sso-title><sso-legend>Espere por favor...</sso-legend></sso-loading><iframe frameborder=0 border=0 cellspacing=0 ng-show=!model.isLoading></iframe>");
@@ -101,6 +101,7 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
     //Configurable Variable on .config Step
     var _appId = null;
     var _ssoBaseURL = null;
+    var _ssoBaseAuthURL = null;
     var _ssoLabel = "$sso:perApp:state";
 
     this.setAppId = function(value) {
@@ -117,6 +118,14 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
         _ssoBaseURL = value;
         return $this;
     };
+
+    this.setApiAuthUrl = function(value) {
+    
+        _ssoBaseAuthURL = value;
+        return $this;
+    };
+
+
 
     this.$get = ['$q', '$Api', '$Identity', '$LocalStorage', function($q, $Api, $Identity, $LocalStorage) {
         var self = this;
@@ -142,6 +151,13 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
                 throw Error("SSO_BASEURL_NOT_SET");
             }
             return _ssoBaseURL;
+        };
+
+        self.getApiAuthUrl = function(){
+            if (!_ssoBaseURL) {
+                throw Error("SSO_BASEURL_NOT_SET");
+            }
+            return _ssoBaseAuthURL;
         };
 
         self.getAccessToken = function() {
@@ -257,8 +273,11 @@ angular.module('gale-sso.templates', []).run(['$templateCache', function($templa
                 return url;
             })();
             var callback_url = api_url + redirect_uri + location.origin;
+            if (settings && settings.redirect_uri) {
+                callback_url = settings.redirect_uri;
+            }
             var oauth2_url = [
-                self.getApiUrl(), "oauth2/v2/auth",
+                self.getApiAuthUrl(),
                 "?response_type=", response_type,
                 "&client_id=", self.getAppId(),
                 "&redirect_uri=", callback_url,
